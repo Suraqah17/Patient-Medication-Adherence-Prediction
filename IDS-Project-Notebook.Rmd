@@ -1,0 +1,618 @@
+---
+title: "Patient Medication Adherence Prediction"
+output: html_notebook
+---
+
+The patient medication adherence classification project is a critical endeavor in healthcare aimed at predicting and categorizing patients' adherence to prescribed medications. Leveraging a dataset that includes variables such as patient age, prescription duration, medical conditions like diabetes and hypertension, lifestyle factors like smoking and alcoholism, and SMS reminders, the project seeks to develop a robust model for patient classification. By accurately distinguishing between adherent and non-adherent patients, healthcare providers can tailor interventions and support to enhance medication compliance, ultimately improving patient outcomes and reducing healthcare costs. This project represents a significant step toward more effective patient-centered care and better healthcare management. 
+<br/><br/>
+<h1><b>Loading dataset</b></h1>
+<br/><br/>
+<h3>
+Loading dataset path</h3>
+```{r}
+file_path <- "D:/College/Assignments/Semester 5/Theory/Introduction to Data Science/dataset.csv"
+```
+
+<br/><br/>
+<h3>
+Loading dataset</h3>
+
+```{r}
+data <- read.csv(file_path)
+```
+<br/><br/>
+<h1><b>Exploratory Data Analysis</b></h1>
+<br/><br/>
+<h3>
+Analyzing Dimensions of data</h3>
+```{r}
+dim(data)
+```
+The dataset has 180212 rows and 11 columns
+<br/><br/>
+<h3>
+Visualizing first few rows of data</h3>
+
+```{r}
+head(data)
+```
+Adherence is the target variable. Others columns are thefeatures.
+<br/><br/>
+<h3>
+Visualizing structure of data as R object</h3>
+```{r}
+str(data)
+```
+<br/><br/>
+<h3>
+Summary structure of data</h3>
+```{r}
+summary(data)
+```
+<br/><br/>
+<h3>
+Calculating number of null values in data</h3>
+```{r}
+colSums(is.na(data))
+```
+The data has no null values.
+<br/><br/>
+<h3>
+Loading psych library</h3>
+```{r}
+library(psych)
+```
+<br/><br/>
+<h3>
+Description of data</h3>
+```{r}
+describe(data)
+```
+<br/><br/>
+<h1><b>Data Visualization</b></h1>
+<br/><br/>
+<h3>Visualizing category wise frequency of target variable Adherence</h3>
+```{r}
+# Calculate the category wise frequency of Adherence values
+temp <- table(data$Adherence)
+temp
+
+# Calculate the relative frequencies
+relative_frequencies <- round(prop.table(temp), 2)
+
+# Create a bar plot
+barplot(relative_frequencies, 
+        names.arg = names(temp),
+        col = "blue",
+        main = "Adherence Distribution",
+        xlab = "Adherence Values",
+        ylab = "Relative Frequency")
+
+
+```
+
+The target class exhibits an imbalance, and sampling techniques will not be utilized. Given that the primary focus in the medical field is on precision and recall, accuracy is not the sole determinant of performance.
+<br/><br/>
+<h3>Visualizing category wise frequency of feature Gender</h3>
+
+```{r}
+# Print the size of each group
+table(data$Gender)
+
+# Create a count plot
+barplot(table(data$Gender), names.arg = names(table(data$Gender)))
+```
+<br/><br/>
+<h3>Visualizing category wise frequency of feature Diabetes</h3>
+```{r}
+# Print the size of each group
+table(data$Diabetes)
+
+# Create a count plot
+barplot(table(data$Diabetes), names.arg = names(table(data$Diabetes)))
+
+```
+<br/><br/>
+<h3>Visualizing category wise frequency of feature Alcoholism</h3>
+```{r}
+# Print the size of each group
+table(data$Alcoholism)
+
+# Create a count plot
+barplot(table(data$Alcoholism), names.arg = names(table(data$Alcoholism)))
+
+```
+<br/><br/>
+<h3>Visualizing category wise frequency of feature Alcoholism</h3>
+```{r}
+# Print the size of each group
+table(data$HyperTension)
+
+# Create a count plot
+barplot(table(data$HyperTension), names.arg = names(table(data$HyperTension)))
+
+```
+<br/><br/>
+<h3>Visualizing category wise frequency of feature Tuberculosis</h3>
+```{r}
+# Print the size of each group
+table(data$Tuberculosis)
+
+# Create a count plot
+barplot(table(data$Tuberculosis), names.arg = names(table(data$Tuberculosis)))
+
+```
+<br/><br/>
+<h3>Visualizing category wise frequency of feature Smokes</h3>
+```{r}
+# Print the size of each group
+table(data$Smokes)
+
+# Create a count plot
+barplot(table(data$Smokes), names.arg = names(table(data$Smokes)))
+```
+<br/><br/>
+<h1><b>Multivriate Data Visualization</b></h1>
+<br><br/>
+<h3>Genderwise Adherence</h3>
+<br><br/>
+<h4>Tabular description</h4>
+```{r}
+# Use table() to count combinations of Gender and Adherence
+gender_adherence_table <- table(data$Gender, data$Adherence)
+
+# Convert the table to a data frame
+Gender_Adherence <- as.data.frame(gender_adherence_table)
+
+# Rename the columns
+colnames(Gender_Adherence) <- c("Gender", "Adherence", "Count")
+
+# Display the resulting data frame
+Gender_Adherence
+
+```
+<br><br/>
+<h4>Visualization</h4>
+```{r}
+# Load the ggplot2 library
+library(ggplot2)
+
+# Create a ggplot object
+ggplot(data = Gender_Adherence, aes(x = Gender, y = Count, fill = Adherence)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Gender and Adherence") +
+  theme_minimal()
+
+```
+<br><br/>
+<h3>Tuberculosis and Adherence</h3>
+<br><br/>
+<h4>Tabular description</h4>
+```{r}
+# Create a table of counts
+tuberculosis_adherence_table <- table(data$Tuberculosis, data$Adherence)
+
+# Print the table
+print(tuberculosis_adherence_table)
+
+```
+<br><br/>
+<h4>Visualization</h4>
+```{r}
+tuberculosis_adherence_df <- as.data.frame(tuberculosis_adherence_table)
+
+# Rename the columns
+colnames(tuberculosis_adherence_df) <- c("Tuberculosis", "Adherence", "Count")
+
+# Create a bar plot
+ggplot(data = tuberculosis_adherence_df, aes(x = Tuberculosis, y = Count, fill = Adherence)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Tuberculosis and Adherence") +
+  theme_minimal()
+
+```
+<br/><br/>
+<h3>Smokes and Adherence</h3>
+<br><br/>
+<h4>Tabular description<h4>
+```{r}
+smokes_adherence_table <- table(data$Smokes, data$Adherence)
+print(smokes_adherence_table)
+```
+<br><br/>
+<h4>Visualization<h4>
+```{r}
+smokes_adherence_df <- as.data.frame(smokes_adherence_table)
+
+# Rename the columns
+colnames(smokes_adherence_df) <- c("Smokes", "Adherence", "Count")
+
+# Create a grouped bar plot
+ggplot(data = smokes_adherence_df, aes(x = Smokes, y = Count, fill = Adherence)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Smokes and Adherence") +
+  theme_minimal()
+
+```
+<br><br/>
+<h3>Hypertension and Adherence</h3>
+<br><br/>
+<h4>Tabular description<h4>
+```{r}
+# Create a table of counts
+hypertension_adherence_table <- table(data$HyperTension, data$Adherence)
+hypertension_adherence_table
+```
+<br><br/>
+<h4>Visualization<h4>
+```{r}
+# Create a data frame from the table
+hypertension_adherence_df <- as.data.frame(hypertension_adherence_table)
+
+# Rename the columns
+colnames(hypertension_adherence_df) <- c("HyperTension", "Adherence", "Count")
+
+# Create a count plot with a hue
+ggplot(data = hypertension_adherence_df, aes(x = HyperTension, y = Count, fill = Adherence)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "HyperTension and Adherence") +
+  theme_minimal()
+```
+<br><br/>
+<h3>Alcoholism and Adherence</h3>
+<br><br/>
+<h4>Tabular description<h4>
+```{r}
+alcoholism_adherence_table <- table(data$Alcoholism, data$Adherence)
+alcoholism_adherence_table
+```
+<br><br/>
+<h4>Visualization<h4>
+```{r}
+# Create a data frame from the table
+alcoholism_adherence_df <- as.data.frame(alcoholism_adherence_table)
+
+# Rename the columns
+colnames(alcoholism_adherence_df) <- c("Alcoholism", "Adherence", "Count")
+
+# Create a count plot with a hue
+ggplot(data = alcoholism_adherence_df, aes(x = Alcoholism, y = Count, fill = Adherence)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Alcoholism and Adherence") +
+  theme_minimal()
+```
+<br><br/>
+<h3>Diabetes and Adherence</h3>
+<br><br/>
+<h4>Tabular description<h4>
+```{r}
+# Create a table of counts
+diabetes_adherence_table <- table(data$Diabetes, data$Adherence)
+diabetes_adherence_table
+```
+<br><br/>
+<h4>Visualization<h4>
+```{r}
+# Create a data frame from the table
+diabetes_adherence_df <- as.data.frame(diabetes_adherence_table)
+
+# Rename the columns
+colnames(diabetes_adherence_df) <- c("Diabetes", "Adherence", "Count")
+
+# Create a count plot with a hue
+ggplot(data = diabetes_adherence_df, aes(x = Diabetes, y = Count, fill = Adherence)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Diabetes and Adherence") +
+  theme_minimal()
+
+```
+<br/><br/>
+<h1><b>Data Pre-Processing</b></h1>
+<br><br/>
+<h3>Convert the Adherence and Gender column to integer 0 and 1.</h3>
+<h4>Adherence Yes = 1 and No = 0, Gender M = 1, F = 0</h4>
+```{r}
+data$Adherence <- ifelse(data$Adherence == 'Yes', 1, 0)
+data$Gender <- ifelse(data$Gender == 'M', 1, 0)
+```
+<br/><br/>
+<h3>First few rows of data.</h3>
+```{r}
+head(data)
+```
+<br/><br/>
+<h3>Setting patient_id as index of data frame.</h3>
+```{r}
+rownames(data) <- data$patient_id
+```
+<h3>First few rows of data.</h3>
+```{r}
+head(data)
+```
+<br/><br/>
+<h3>Drop Column patientid id</h3>
+```{r}
+# Load the dplyr library
+library(dplyr)
+
+# Assuming 'data' is your data frame
+data <- data %>% select(-patient_id)
+
+```
+<br/><br/>
+<h3>First few rows of data.</h3>
+```{r}
+head(data)
+```
+<br/><br/>
+<h3>Diabetes and Adherence table.</h3>
+```{r}
+# Assuming 'data' is your data frame
+result_table <- table(data$Diabetes, data$Adherence)
+
+# Create a data frame from the table with column names
+result_df <- as.data.frame(result_table)
+colnames(result_df) <- c("Diabetes", "Adherence", "Count")
+
+# Display the resulting data frame
+print(result_df)
+```
+<br/><br/>
+<h3>Diabetes, alcoholism and Adherence table.</h3>
+```{r}
+result_table <- table(data$Diabetes, data$Alcoholism, data$Adherence)
+
+# Create a data frame from the table with column names
+result_df <- as.data.frame(result_table)
+colnames(result_df) <- c("Diabetes", "Alcoholism", "Adherence", "Count")
+
+# Display the resulting data frame
+print(result_df)
+```
+<br/><br/>
+<h3>Adherence table size.</h3>
+```{r}
+# Assuming 'data' is your data frame
+table(data$Adherence)
+```
+<br/><br/>
+<h1></b>Train Test and Split the Data.</b></h1>
+<br/><br/>
+<h3>Splitting data</h3>
+```{r}
+# Load the caTools library
+library(caTools)
+set.seed(123)
+
+# Create a split tag
+sample.split(data$Adherence, SplitRatio = 0.7) -> split_tag
+
+# Subset the data into training and testing sets
+train <- subset(data, split_tag == TRUE)
+test <- subset(data, split_tag == FALSE)
+```
+<br/><br/>
+<h3>First few columns of train data</h3>
+```{r}
+head(train)
+```
+<br/><br/>
+<h3>First few columns of test data</h3>
+```{r}
+head(test)
+```
+<br/><br/>
+<h1></b>Training and Evaluation models.</b></h1>
+<br/><br/>
+<h2><b>Logistic Regression</b></h2>
+<br/><br/>
+<h3>Training model</h3>
+```{r}
+# Assuming 'data' is your data frame with the features and the 'Adherence' target variable
+
+# Fit a logistic regression model
+logistic_model <- glm(Adherence ~ Age + Gender + Prescription_period + Diabetes + Alcoholism + HyperTension + Smokes + Tuberculosis + Sms_Reminder, data = data, family = "binomial")
+
+# Summary of the logistic regression model
+summary(logistic_model)
+
+```
+<br/><br/>
+<h3>Testing model</h3>
+```{r}
+# Make predictions on the test dataset
+predictions <- predict(logistic_model, newdata = test, type = "response")
+
+# Evaluate the model's performance
+# You can use various evaluation metrics depending on your problem, e.g., accuracy, ROC curve, AUC, confusion matrix, etc.
+
+# For example, to compute accuracy:
+actual_labels <- test$Adherence
+log_predicted_labels <- ifelse(predictions > 0.5, 1, 0)  # Threshold at 0.5
+
+# Calculate accuracy
+accuracy <- mean(actual_labels == log_predicted_labels)
+cat("Accuracy:", accuracy, "\n")
+
+```
+<br/><br/>
+<h3>Testing model</h3>
+
+```{r}
+# Make predictions on the test dataset
+predictions <- predict(logistic_model, newdata = test, type = "response")
+
+# Evaluate the model's performance
+# You can use various evaluation metrics depending on your problem, e.g., accuracy, ROC curve, AUC, confusion matrix, etc.
+
+# For example, to compute accuracy:
+actual_labels <- test$Adherence
+log_predicted_labels <- ifelse(predictions > 0.5, 1, 0)  # Threshold at 0.5
+
+# Calculate accuracy
+accuracy <- mean(actual_labels == log_predicted_labels)
+cat("Accuracy:", accuracy, "\n")
+
+```
+<br/><br/>
+<h3>Confusion Matrix</h3>
+```{r}
+# Calculate the confusion matrix and classification report
+library(caret)
+confusion_matrix <- confusionMatrix(as.factor(log_predicted_labels), as.factor(actual_labels))
+
+# Print the classification report
+print(confusion_matrix)
+```
+<br/><br/>
+<h3>Evaluation Metric</h3>
+```{r}
+# Extract precision, recall, F1-score, and support from the confusion matrix
+precision <- confusion_matrix$byClass["Pos Pred Value"]
+recall <- confusion_matrix$byClass["Sensitivity"]
+f1_score <- confusion_matrix$byClass["F1"]
+support <- confusion_matrix$byClass["Support"]
+
+# Print the metrics
+cat("Precision:", precision, "\n")
+cat("Recall (Sensitivity):", recall, "\n")
+cat("F1-Score:", f1_score, "\n")
+cat("Support:", support, "\n")
+```
+<br/><br/>
+<h2><b>KNN Classifier</b></h2>
+<br/><br/>
+<h3>Training and testing model</h3>
+```{r}
+library(class)
+k<-3
+knn_predictions <- knn(train = train[, 1:9], test = test[, 1:9], cl = train$Adherence, k = k)
+# Predict k-NN values on test data
+# Calculate the confusion matrix
+confusion_matrix <- table(knn_predictions, test$Adherence)
+
+# Calculate accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+cat("Accuracy:", accuracy, "\n")
+```
+<br/><br/>
+<h3>Confusion Matrix</h3>
+```{r}
+# Calculate the confusion matrix and classification report
+library(caret)
+confusion_matrix <- confusionMatrix(as.factor(knn_predictions),as.factor(test$Adherence))
+
+# Print the classification report
+print(confusion_matrix)
+```
+<br/><br/>
+<h3>Evaluation Metric</h3>
+```{r}
+# Extract precision, recall, F1-score, and support from the confusion matrix
+precision <- confusion_matrix$byClass["Pos Pred Value"]
+recall <- confusion_matrix$byClass["Sensitivity"]
+f1_score <- confusion_matrix$byClass["F1"]
+support <- confusion_matrix$byClass["Support"]
+
+# Print the metrics
+cat("Precision:", precision, "\n")
+cat("Recall (Sensitivity):", recall, "\n")
+cat("F1-Score:", f1_score, "\n")
+cat("Support:", support, "\n")
+```
+<br/><br/>
+<h2><b>Decision Tree</b></h2>
+<br/><br/>
+<h3>Training and testing model</h3>
+
+```{r}
+# Load the rpart library
+library(rpart)
+
+# Assuming you have a data frame 'data' with the target variable 'Adherence' and features
+
+# Create and train the decision tree classifier
+decision_tree_model <- rpart(Adherence ~ ., data = train, method = "class")
+
+# Make predictions on the test data
+tree_predictions <- predict(decision_tree_model, newdata = test, type = "class")
+
+# Calculate the confusion matrix
+confusion_matrix <- table(tree_predictions, test$Adherence)
+
+# Calculate accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+cat("Accuracy:", accuracy, "\n")
+```
+<br/><br/>
+<h3>Confusion Matrix</h3>
+```{r}
+# Calculate the confusion matrix and classification report
+library(caret)
+confusion_matrix <- confusionMatrix(as.factor(tree_predictions),as.factor(test$Adherence))
+
+# Print the classification report
+print(confusion_matrix)
+```
+<br/><br/>
+<h3>Evaluation Metric</h3>
+```{r}
+# Extract precision, recall, F1-score, and support from the confusion matrix
+precision <- confusion_matrix$byClass["Pos Pred Value"]
+recall <- confusion_matrix$byClass["Sensitivity"]
+f1_score <- confusion_matrix$byClass["F1"]
+support <- confusion_matrix$byClass["Support"]
+
+# Print the metrics
+cat("Precision:", precision, "\n")
+cat("Recall (Sensitivity):", recall, "\n")
+cat("F1-Score:", f1_score, "\n")
+cat("Support:", support, "\n")
+```
+<h1><b>Comparing model performance<b><h1>
+<br/><br/>
+<h3>ROC curve<h3>
+```{r}
+library(pROC)
+
+# List of model predictions
+model_predictions <- list(
+  as.numeric(log_predicted_labels),
+  as.numeric(knn_predictions),
+  as.numeric(tree_predictions)
+  # Add more models if needed
+)
+
+# Labels for models (for the legend)
+model_labels <- c("Logistic Regression", "KNN", "Decision Tree")
+
+# Initialize an empty plot for the ROC curve
+plot(0, 0, type = "n", xlim = c(0, 1), ylim = c(0, 1), xlab = "False Positive Rate", ylab = "True Positive Rate", main = "Consolidated ROC Curve")
+
+# Loop through each model's predictions and plot the ROC curve
+colors <- 1:length(model_predictions)
+for (i in 1:length(model_predictions)) {
+  roc_curve <- roc(test$Adherence, model_predictions[[i]])
+  lines(roc_curve, col = colors[i])
+}
+
+# Add a legend for model labels
+legend("bottomright", legend = model_labels, col = colors, lty = 1)
+
+
+```
+<br/><br/>
+<h3>AUC values of models<h3>
+```{r}
+# Calculate and print AUC for each model
+auc_values <- sapply(model_predictions, function(pred) {
+  auc(roc(test$Adherence, pred))
+})
+
+for (i in 1:length(auc_values)) {
+  cat("AUC for model ", model_labels[i], ": ", auc_values[i],"\n")
+}
+```
+
+
+
